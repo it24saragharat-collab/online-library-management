@@ -2,6 +2,15 @@ pipeline {
 
     agent any
 
+    tools {
+        jdk 'JDK25'
+        maven 'Maven-3.9.16'
+    }
+
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
 
         stage('Checkout') {
@@ -18,6 +27,16 @@ pipeline {
             }
         }
 
+        stage('Start Web App') {
+            steps {
+                echo 'Starting Online Library web application...'
+
+                bat 'start "JettyServer" /B cmd /c "mvn jetty:run -Djetty.http.port=8081 > jetty.log 2>&1"'
+
+                bat 'powershell -NoProfile -Command "$deadline=(Get-Date).AddSeconds(60); while((Get-Date) -lt $deadline) { try { Invoke-WebRequest -UseBasicParsing http://localhost:8081/ -TimeoutSec 2 | Out-Null; exit 0 } catch { Start-Sleep -Seconds 2 } }; Get-Content jetty.log; exit 1"'
+            }
+        }
+
         stage('Selenium Test') {
             steps {
                 echo 'Running Selenium automated tests...'
@@ -25,12 +44,32 @@ pipeline {
             }
         }
 
+        stage('Stop Web App') {
+            steps {
+                echo 'Stopping web application...'
+
+                bat '''
+                    for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /PID %%P /F
+                '''
+            }
+        }
+
         stage('Docker Build') {
             steps {
+                echo 'Checking Docker...'
+                bat 'docker version'
+
                 echo 'Building Docker image...'
                 bat 'docker build -t online-library-management .'
             }
         }
+    }
 
+    post {
+        always {
+            bat '''
+                for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /PID %%P /F
+            '''
+        }
     }
 }
