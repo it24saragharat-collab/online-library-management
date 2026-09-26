@@ -56,14 +56,22 @@ pipeline {
         }
 
         stage('Docker Build') {
-            steps {
-                echo 'Checking Docker...'
-                bat 'docker version'
+    steps {
+        echo 'Checking Docker...'
 
-                echo 'Building Docker image...'
-                bat 'docker build -t online-library-management .'
-            }
-        }
+        bat '''
+            set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
+            docker version
+        '''
+
+        echo 'Building Docker image...'
+
+        bat '''
+            set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
+            docker build -t online-library-management .
+        '''
+    }
+}
     }
 
     post {
