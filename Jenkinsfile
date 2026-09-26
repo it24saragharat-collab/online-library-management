@@ -85,16 +85,19 @@ pipeline {
                         set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
 
                         echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
+                        if errorlevel 1 exit /B 1
 
                         docker tag online-library-management %DOCKER_USERNAME%/online-library-management:latest
+                        if errorlevel 1 exit /B 1
 
                         docker push %DOCKER_USERNAME%/online-library-management:latest
+                        if errorlevel 1 exit /B 1
 
                         docker logout
                     '''
                 }
             }
-        }             
+        }                     
     }
 
     post {
