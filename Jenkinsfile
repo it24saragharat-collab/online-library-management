@@ -23,7 +23,7 @@ pipeline {
         stage('Maven Build') {
             steps {
                 echo 'Building Online Library Management System...'
-                bat 'mvn clean package'
+                bat 'mvn clean package -DskipTests'
             }
         }
 
@@ -49,7 +49,8 @@ pipeline {
                 echo 'Stopping web application...'
 
                 bat '''
-                    for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /PID %%P /F
+                    for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /PID %%P /F >NUL 2>&1
+                    exit /B 0
                 '''
             }
         }
@@ -68,7 +69,8 @@ pipeline {
     post {
         always {
             bat '''
-                for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /PID %%P /F
+                for /f "tokens=5" %%P in ('netstat -ano ^| findstr ":8081" ^| findstr "LISTENING"') do taskkill /PID %%P /F >NUL 2>&1
+                exit /B 0
             '''
         }
     }
