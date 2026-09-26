@@ -72,6 +72,29 @@ pipeline {
         '''
     }
 }
+            stage('Docker Push') {
+            steps {
+                echo 'Logging in to Docker Hub...'
+
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    bat '''
+                        set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
+
+                        echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
+
+                        docker tag online-library-management %DOCKER_USERNAME%/online-library-management:latest
+
+                        docker push %DOCKER_USERNAME%/online-library-management:latest
+
+                        docker logout
+                    '''
+                }
+            }
+        }             
     }
 
     post {
