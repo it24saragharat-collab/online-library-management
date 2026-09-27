@@ -55,49 +55,30 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+         stage('Docker Build and Push') {
     steps {
-        echo 'Checking Docker...'
+        echo 'Building and pushing Docker image to Docker Hub...'
 
-        bat '''
-            set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
-            docker version
-        '''
+        withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-credentials',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
+            bat '''
+                set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
 
-        echo 'Building Docker image...'
+                echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
+                if errorlevel 1 exit /B 1
 
-        bat '''
-            set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
-            docker build -t online-library-management .
-        '''
+                docker buildx build --push -t %DOCKER_USERNAME%/online-library-management:latest .
+
+                if errorlevel 1 exit /B 1
+
+                docker logout
+            '''
+        }
     }
-}
-            stage('Docker Push') {
-            steps {
-                echo 'Logging in to Docker Hub...'
-
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    bat '''
-                        set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
-
-                        echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
-                        if errorlevel 1 exit /B 1
-
-                        docker tag online-library-management %DOCKER_USERNAME%/online-library-management:latest
-                        if errorlevel 1 exit /B 1
-
-                        docker push %DOCKER_USERNAME%/online-library-management:latest
-                        if errorlevel 1 exit /B 1
-
-                        docker logout
-                    '''
-                }
-            }
-        }                     
+}                    
     }
 
     post {
