@@ -68,7 +68,7 @@ pipeline {
     }
 }
 
-stage('Docker Push') {
+sstage('Docker Push') {
     steps {
         echo 'Pushing Docker image to Docker Hub...'
 
@@ -77,7 +77,6 @@ stage('Docker Push') {
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
         )]) {
-
             bat '''
                 set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
 
