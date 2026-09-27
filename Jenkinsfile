@@ -68,7 +68,7 @@ pipeline {
     }
 }
 
-sstage('Docker Push') {
+stage('Docker Push') {
     steps {
         echo 'Pushing Docker image to Docker Hub...'
 
