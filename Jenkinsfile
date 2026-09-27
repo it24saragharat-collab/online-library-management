@@ -55,9 +55,22 @@ pipeline {
             }
         }
 
-         stage('Docker Build and Push') {
+        stage('Docker Build') {
     steps {
-        echo 'Building and pushing Docker image to Docker Hub...'
+        echo 'Building Docker image...'
+
+        bat '''
+            set "PATH=C:\\Users\\LOQ\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;%PATH%"
+
+            docker build -t online-library-management .
+            if errorlevel 1 exit /B 1
+        '''
+    }
+}
+
+stage('Docker Push') {
+    steps {
+        echo 'Pushing Docker image to Docker Hub...'
 
         withCredentials([usernamePassword(
             credentialsId: 'dockerhub-credentials',
@@ -70,8 +83,10 @@ pipeline {
                 echo %DOCKER_PASSWORD% | docker login -u "%DOCKER_USERNAME%" --password-stdin
                 if errorlevel 1 exit /B 1
 
-                docker buildx build --push -t %DOCKER_USERNAME%/online-library-management:latest .
+                docker tag online-library-management %DOCKER_USERNAME%/online-library-management:latest
+                if errorlevel 1 exit /B 1
 
+                docker push %DOCKER_USERNAME%/online-library-management:latest
                 if errorlevel 1 exit /B 1
 
                 docker logout
